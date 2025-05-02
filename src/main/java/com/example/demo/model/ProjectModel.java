@@ -1,12 +1,17 @@
 package com.example.demo.model;
 
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.sql.Timestamp;
 import java.util.List;
 
-@Data
+@Entity
+@Getter
+@Setter
 public class ProjectModel {
+    @Id
     private Long id;
     private String projectName;
     private Integer storyPoint;
@@ -18,5 +23,7 @@ public class ProjectModel {
     private Double estimatedEffort;
     private Double actualEffort;
     private Timestamp createdDate;
+    private Timestamp updatedDate;
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Task> tasks;
 }

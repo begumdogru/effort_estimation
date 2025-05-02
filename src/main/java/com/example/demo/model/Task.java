@@ -1,11 +1,17 @@
 package com.example.demo.model;
 
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.sql.Timestamp;
 
-@Data
+@Entity
+@Getter
+@Setter
+@Table(name = "tasks")
 public class Task {
+    @Id
     private Long id;
     private String taskName;
     private TechnologyType technology;
@@ -14,6 +20,8 @@ public class Task {
     private Double estimatedEffort;
     private String description;
     private Double actualEffort;
-    private Long projectId;
+    @ManyToOne
+    @JoinColumn(name = "project_id", nullable = false)
+    private ProjectModel project;
 
 }
