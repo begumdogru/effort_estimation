@@ -1,5 +1,6 @@
 package com.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -21,6 +22,7 @@ public class Task {
     private Double actualEffort;
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "project_id")
+    @JsonBackReference
     private ProjectModel project;
 
 }
