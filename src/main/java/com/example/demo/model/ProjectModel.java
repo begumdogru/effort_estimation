@@ -3,6 +3,8 @@ package com.example.demo.model;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 
 import java.sql.Timestamp;
@@ -32,7 +34,10 @@ public class ProjectModel {
     @Column(nullable = false)
     private Double estimatedEffort;
     private Double actualEffort;
+    @CreationTimestamp
+    @Column(updatable = false)
     private Timestamp createdDate;
+    @UpdateTimestamp
     private Timestamp updatedDate;
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
