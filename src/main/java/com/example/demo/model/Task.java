@@ -1,17 +1,16 @@
 package com.example.demo.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
 import java.sql.Timestamp;
 
 @Entity
-@Getter
-@Setter
+@Data
 @Table(name = "tasks")
 public class Task {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String taskName;
     private TechnologyType technology;
@@ -20,8 +19,8 @@ public class Task {
     private Double estimatedEffort;
     private String description;
     private Double actualEffort;
-    @ManyToOne
-    @JoinColumn(name = "project_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "project_id")
     private ProjectModel project;
 
 }

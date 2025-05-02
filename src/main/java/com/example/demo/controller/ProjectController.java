@@ -1,6 +1,9 @@
 package com.example.demo.controller;
 
+import com.example.demo.model.ProjectModel;
+import com.example.demo.model.Task;
 import com.example.demo.service.ProjectService;
+import com.example.demo.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,11 +16,26 @@ public class ProjectController {
     //send a request to an ai bot to get the estimation of the project
     @Autowired
     private ProjectService projectService;
+    @Autowired
+    private TaskService taskService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getProjectById(@PathVariable Long id) {
+    public ResponseEntity<ProjectModel> getProjectById(@PathVariable Long id) {
         return projectService.getProjectById(id).
                 map(projectModel -> new ResponseEntity<>(projectModel, HttpStatus.OK)).
                 orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/getAll")
+    public ResponseEntity<Object> getProjects() {
+        return ResponseEntity.ok(projectService.getProjects());
+    }
+    @PostMapping("/createProject")
+    public ResponseEntity<Object> createProject(@RequestBody ProjectModel projectModel) {
+        return ResponseEntity.ok(projectService.createProject(projectModel));
+    }
+    @PostMapping("/createTask")
+    public ResponseEntity<Task> createTask(@RequestBody Task task) {
+        return ResponseEntity.ok(taskService.createTask(task));
     }
 }
