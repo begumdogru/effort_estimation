@@ -2,12 +2,15 @@ package com.example.demo.controller;
 
 import com.example.demo.model.ProjectModel;
 import com.example.demo.model.Task;
+import com.example.demo.service.AiBotService;
 import com.example.demo.service.ProjectService;
 import com.example.demo.service.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/projects")
@@ -18,6 +21,8 @@ public class ProjectController {
     private ProjectService projectService;
     @Autowired
     private TaskService taskService;
+    @Autowired
+    private AiBotService aiBotService;
 
     @GetMapping("/{id}")
     public ResponseEntity<ProjectModel> getProjectById(@PathVariable Long id) {
@@ -37,5 +42,10 @@ public class ProjectController {
     @PostMapping("/createTask")
     public ResponseEntity<Task> createTask(@RequestBody Task task) {
         return ResponseEntity.ok(taskService.createTask(task));
+    }
+    @PostMapping("/getEstimation")
+    public ResponseEntity<Object> getEstimation(@RequestBody ProjectModel projectModel){
+        List<ProjectModel> projects = projectService.getProjects();
+        return ResponseEntity.ok(aiBotService.getEstimation(projectModel, projects));
     }
 }
