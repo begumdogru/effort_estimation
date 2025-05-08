@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Effort Estimation App</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h2 { margin-top: 40px; }
+        label { display: block; margin-top: 10px; }
+        input, select, textarea { width: 300px; padding: 5px; }
+        button { margin-top: 15px; padding: 10px 15px; }
+        #projectsList { margin-top: 20px; }
+        .project-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        .task-container {
+            border: 1px dashed #aaa;
+            padding: 10px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+<h1>Effort Estimation App</h1>
+
+<h2>Yeni Proje Ekle</h2>
+<form id="projectForm">
+    <label>Proje Adı: <input type="text" id="projectName" required></label>
+    <label>Story Point: <input type="number" id="storyPoint" required></label>
+    <label>Kategori:
+        <select id="category">
+            <option value="SIGNIFICANT">SIGNIFICANT</option>
+            <option value="MAJOR">MAJOR</option>
+            <option value="MINOR">MINOR</option>
+            <option value="TRIVIAL">TRIVIAL</option>
+        </select>
+    </label>
+    <label>Complexity: <input type="number" id="complexity" step="0.1" required></label>
+    <label>Uncertainty: <input type="number" id="uncertainty" step="0.1" required></label>
+    <label>Risk Management:
+        <select id="riskManagement">
+            <option value="LOW">LOW</option>
+            <option value="MEDIUM">MEDIUM</option>
+            <option value="HIGH">HIGH</option>
+        </select>
+    </label>
+    <label>Technology:
+        <select id="technology">
+            <option value="JAVA">JAVA</option>
+            <option value="MAINFRAME">MAINFRAME</option>
+            <option value="JCL">JCL</option>
+            <option value="BOTH_JAVA_AND_MAINFRAME">BOTH_JAVA_AND_MAINFRAME</option>
+        </select>
+    </label>
+
+    <h3>Tasklar</h3>
+    <div id="taskList"></div>
+    <button type="button" onclick="addTask()">+ Task Ekle</button>
+
+    <br><br>
+    <button type="submit">Projeyi Kaydet ve Tahmin Al</button>
+</form>
+
+<p><strong>Tahmin Edilen Efor:</strong> <span id="estimationResult"></span></p>
+
+<hr>
+
+<h2>Tüm Projeler</h2>
+<div id="projectsList"></div>
+
+<script>
+    function addTask() {
+        const container = document.createElement("div");
+        container.className = "task-container";
+        container.innerHTML = `
+            <label>Task Adı: <input type="text" class="taskName" required></label>
+            <label>Açıklama: <textarea class="description"></textarea></label>
+            <label>Tahmini Efor (saat): <input type="number" class="estimatedEffort" step="0.1" required></label>
+            <label>Gerçek Efor (saat): <input type="number" class="estimatedEffort" step="0.1"></label>
+        `;
+        document.getElementById("taskList").appendChild(container);
+    }
+
+    document.getElementById("projectForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const project = {
+            projectName: document.getElementById("projectName").value,
+            storyPoint: parseInt(document.getElementById("storyPoint").value),
+            category: document.getElementById("category").value,
+            complexity: parseFloat(document.getElementById("complexity").value),
+            uncertainty: parseFloat(document.getElementById("uncertainty").value),
+            riskManagement: document.getElementById("riskManagement").value,
+            technology: document.getElementById("technology").value,
+            estimatedEffort: 0.0,
+            tasks: []
+        };
+
+        document.querySelectorAll(".task-container").forEach(container => {
+            project.tasks.push({
+                taskName: container.querySelector(".taskName").value,
+                description: container.querySelector(".description").value,
+                estimatedEffort: parseFloat(container.querySelector(".estimatedEffort").value),
+                actualEffort: 0.0,
+                technology: project.technology
+            });
+        });
+
+        fetch("http://localhost:8081/projects/getEstimation", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(project)})
+            .then(response => response.text())
+            .then(estimation => {
+                document.getElementById("estimationResult").textContent = estimation;
+
+                project.estimatedEffort = parseFloat(estimation.match(/\d+(\.\d+)?/));
+
+                fetch("http://localhost:8081/projects/createProject", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(project)})
+                    .then(res => res.json())
+                    .then(savedProject => {
+                        alert("Proje başarıyla kaydedildi!");
+                        loadProjects();
+                    });
+            })
+            .catch(error => {
+                console.error("Tahmin hatası:", error);
+                alert("Tahmin alınamadı.");
+            });
+    });
+
+    function loadProjects() {
+        fetch("http://localhost:8081/projects/getAll",
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Yüklenen projeler:", data);
+                const listDiv = document.getElementById("projectsList");
+                listDiv.innerHTML = "";
+
+                data.forEach(project => {
+                    const div = document.createElement("div");
+                    const tasks = Array.isArray(project.tasks) ? project.tasks : [];
+
+                    div.className = "project-card";
+                    div.innerHTML = `
+                        <strong>${project.projectName}</strong><br>
+                        Tahmini Efor: ${project.estimatedEffort}<br>
+                        Gerçekleşen Efor: ${project.actualEffort || "Yok"}<br>
+                        Teknoloji: ${project.technology}<br>
+                        Kategori: ${project.category}<br>
+                        Complexity: ${project.complexity}<br>
+                        <em>Tasklar:</em>
+                        <ul>${tasks.map(task => `<li>${task.taskName} - ${task.estimatedEffort} saat</li>`).join('')}</ul>
+                    `;
+                    listDiv.appendChild(div);
+                });
+            })
+            .catch(error => {
+                console.error("Proje yükleme hatası:", error);
+            });
+    }
+
+    loadProjects();
+</script>
+</body>
+</html>

@@ -93,7 +93,7 @@ public class AiBotService {
         Past Projects: %s
         %s
         Based on the above details and the past experience of similar projects,
-        Estimate the effort in hours. 
+        Estimate the effort in hours. Do not include any explanation or context.
         """,
                 dto.getProjectName(),
                 dto.getStoryPoint(),
