@@ -16,8 +16,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/projects")
 public class ProjectController {
-    //There should be create project, update project, get project by id, get all projects, delete project and
-    //send a request to an ai bot to get the estimation of the project
     @Autowired
     private ProjectService projectService;
     @Autowired
